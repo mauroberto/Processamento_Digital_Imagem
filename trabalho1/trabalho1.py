@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 
 #item A
-def filter_A(img):
+def filterA(img):
     b,g,r = cv2.split(img)
 
     _r = np.where(r*0.393 + g*0.769 + b*0.189 > 255, 255, r*0.393 + g*0.769 + b*0.189)
@@ -15,7 +15,7 @@ def filter_A(img):
 
 
 #item B
-def filter_B(img):
+def filterB(img):
     b,g,r = cv2.split(img)
 
     img2 = np.where(r*0.2989 + g*0.5870 + b*0.1140 > 255, 255, r*0.2989 + g*0.5870 + b*0.1140)
@@ -36,12 +36,12 @@ h9 = np.array([[1, 4, 6, 4, 1], [4, 16, 24, 16, 4], [6, 24, 36, 24, 6], [4, 16, 
 filters = np.array([h1, h2, h3, h4, h5, h6, h7, h8, h9], dtype=object)
 
 #apply convolution to image
-def apply_filter(image, kernel):
+def applyFilter(image, filter):
     #convert 3d grayscale images to 2d 
     if len(image.shape) > 2:
         image = image[:,:,0]
     rows, cols = image.shape[:2]
-    rows_k, cols_k = kernel.shape[:2]
+    rows_k, cols_k = filter.shape[:2]
 
     pad_c = cols_k//2
     pad_r = rows_k//2
@@ -55,18 +55,18 @@ def apply_filter(image, kernel):
         (pad_c, pad_c)
     ])
 
-    padded_image_rows, padded_image_cols = padded_image.shape[:2]
+    output_array_rows, output_array_cols = output_array.shape[:2]
 
-    for r in range(padded_image_rows - rows_k + 1):
-        for c in range(padded_image_cols - cols_k + 1):
-            output_array[r, c] = np.sum(kernel * padded_image[r:r + rows_k, c:c + cols_k]) 
+    for r in range(output_array_rows):
+        for c in range(output_array_cols):
+            output_array[r, c] = (filter * padded_image[r:r + rows_k, c:c + cols_k]).sum()
     
     return output_array 
 
 #combine two filters
 def combineFilters(img, filter1, filter2):
-    img1 = apply_filter(img, filter1).astype(np.float32)
-    img2 = apply_filter(img, filter2).astype(np.float32)
+    img1 = applyFilter(img, filter1).astype(np.float32)
+    img2 = applyFilter(img, filter2).astype(np.float32)
     img1 = np.power(img1,2)
     img2 = np.power(img2,2)
     img3 = np.around(np.sqrt(img1 + img2))
@@ -102,13 +102,13 @@ def main():
             print("Invalid filter. The filter value must be an integer on interval [0, 2]")
             exit()
         elif flt_type == 1:
-            output_img = filter_A(img)
+            output_img = filterA(img)
         elif flt_type == 2:
-            output_img = filter_B(img)
+            output_img = filterB(img)
         else:
-            output_img = filter_A(img)
+            output_img = filterA(img)
             cv2.imwrite(output_filename[:-4]+"_A"+output_filename[-4:], output_img)
-            output_img = filter_B(img)
+            output_img = filterB(img)
             cv2.imwrite(output_filename[:-4]+"_B"+output_filename[-4:], output_img)
             exit()
     else:
@@ -117,7 +117,7 @@ def main():
             exit()
         elif flt_type == 0:
             for i in range(0, 9):
-                output_img = apply_filter(img, filters[i])
+                output_img = applyFilter(img, filters[i])
                 cv2.imwrite(output_filename[:-4]+"_h"+str(i+1)+output_filename[-4:], output_img)
             output_img = combineFilters(img, filters[0], filters[1])
             cv2.imwrite(output_filename[:-4]+"_h1_and_h2"+output_filename[-4:], output_img)
@@ -125,7 +125,7 @@ def main():
         elif flt_type == 10:
             output_img = combineFilters(img, filters[0], filters[1])
         else:
-            output_img = apply_filter(img, filters[flt_type-1])
+            output_img = applyFilter(img, filters[flt_type-1])
 
     #write output image
     cv2.imwrite(output_filename, output_img)
