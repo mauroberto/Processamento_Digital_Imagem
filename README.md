@@ -1,2 +1,2 @@
-# processamento_digital_de_imagens-mo443
+# MO443 - Introdução ao Processamento Digital de Imagem
 Disciplina 1s2021
