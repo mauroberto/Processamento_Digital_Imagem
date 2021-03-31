@@ -7,26 +7,11 @@ import cv2
 def filter_A(img):
     b,g,r = cv2.split(img)
 
-    print(r.shape)
-    print(g.shape)
-    print(b.shape)
-
     _r = np.where(r*0.393 + g*0.769 + b*0.189 > 255, 255, r*0.393 + g*0.769 + b*0.189)
     _g = np.where(r*0.349 + g*0.686 + b*0.168 > 255, 255, r*0.349 + g*0.686 + b*0.168)
     _b = np.where(r*0.272 + g*0.534 + b*0.131 > 255, 255, r*0.272 + g*0.534 + b*0.131)
 
-    print(_r.shape)
-    print(_g.shape)
-    print(_b.shape)
-
-    img2 = cv2.merge((_b, _g, _r)).astype(np.uint8)
-
-    print(img2)
-
-    cv2.imshow('image_A', img2)
-    cv2.waitKey(0)
-
-    return img2
+    return cv2.merge((_b, _g, _r)).astype(np.uint8)
 
 
 #item B
@@ -35,14 +20,9 @@ def filter_B(img):
 
     img2 = np.where(r*0.2989 + g*0.5870 + b*0.1140 > 255, 255, r*0.2989 + g*0.5870 + b*0.1140)
 
-    print(img2)
-
-    cv2.imshow('image_B', img2)
-    cv2.waitKey(0)
-
     return img2
 
-#filters
+#defining filters
 h1 = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
 h2 = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])
 h3 = np.array([[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]])
@@ -53,14 +33,37 @@ h7 = np.array([[0, 0, 1], [0, 0, 0], [-1, 0, 0]])
 h8 = np.array([[0, 0, -1, 0, 0], [0, -1, -2, -1, 0], [-1, -2, 16, -2, -1], [0, -1, -2, -1, 0], [0, 0, -1, 0, 0]])
 h9 = np.array([[1, 4, 6, 4, 1], [4, 16, 24, 16, 4], [6, 24, 36, 24, 6], [4, 16, 24, 16, 4], [1, 4, 6, 4, 1]])/256
 
-filters = np.array([h1, h2, h3, h4, h5, h6, h7, h8, h9])
+filters = np.array([h1, h2, h3, h4, h5, h6, h7, h8, h9], dtype=object)
 
-def apply_filter(img, filter):
-    img2 = cv2.filter2D(img,-1,filter)
-    cv2.imshow('filter h', img2)
-    cv2.waitKey(0)
-    return img2
+#apply convolution to image
+def apply_filter(image, kernel):
+    #convert 3d grayscale images to 2d 
+    if len(image.shape) > 2:
+        image = image[:,:,0]
+    rows, cols = image.shape[:2]
+    rows_k, cols_k = kernel.shape[:2]
 
+    pad_c = cols_k//2
+    pad_r = rows_k//2
+
+    # creating output array
+    output_array = np.zeros((rows, cols))
+    
+    # adding padding to image
+    padded_image = np.pad(image, [
+        (pad_r, pad_r),
+        (pad_c, pad_c)
+    ])
+
+    padded_image_rows, padded_image_cols = padded_image.shape[:2]
+
+    for r in range(padded_image_rows - rows_k + 1):
+        for c in range(padded_image_cols - cols_k + 1):
+            output_array[r, c] = np.sum(kernel * padded_image[r:r + rows_k, c:c + cols_k]) 
+    
+    return output_array 
+
+#combine two filters
 def combineFilters(img, filter1, filter2):
     img1 = apply_filter(img, filter1).astype(np.float32)
     img2 = apply_filter(img, filter2).astype(np.float32)
@@ -68,8 +71,6 @@ def combineFilters(img, filter1, filter2):
     img2 = np.power(img2,2)
     img3 = np.around(np.sqrt(img1 + img2))
     img3 = cv2.normalize(img3, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
-    cv2.imshow('combine filters h', img3)
-    cv2.waitKey(0)
     return img3
 
 def main():
@@ -95,9 +96,7 @@ def main():
     #read image
     img = cv2.imread(img_name)
 
-    cv2.imshow('image', img)
-    cv2.waitKey(0)
-
+    #select filter
     if type_of_img == 0:
         if flt_type < 0 or flt_type > 2:
             print("Invalid filter. The filter value must be an integer on interval [0, 2]")
@@ -126,8 +125,9 @@ def main():
         elif flt_type == 10:
             output_img = combineFilters(img, filters[0], filters[1])
         else:
-            output_img = apply_filter(img, filters[i-1])
+            output_img = apply_filter(img, filters[flt_type-1])
 
+    #write output image
     cv2.imwrite(output_filename, output_img)
 
 if __name__ == "__main__":
