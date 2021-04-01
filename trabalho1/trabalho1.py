@@ -61,7 +61,7 @@ def applyFilter(image, filter):
         for c in range(output_array_cols):
             output_array[r, c] = (filter * padded_image[r:r + rows_k, c:c + cols_k]).sum()
     
-    return output_array 
+    return output_array
 
 #combine two filters
 def combineFilters(img, filter1, filter2):
