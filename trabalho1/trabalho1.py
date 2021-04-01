@@ -2,6 +2,7 @@ import sys
 import pandas as pd
 import numpy as np
 import cv2
+from skimage.util.shape import view_as_windows
 
 #item A
 def filterA(img):
@@ -57,9 +58,15 @@ def applyFilter(image, filter):
 
     output_array_rows, output_array_cols = output_array.shape[:2]
 
-    for r in range(output_array_rows):
-        for c in range(output_array_cols):
-            output_array[r, c] = (filter * padded_image[r:r + rows_k, c:c + cols_k]).sum()
+    # non-vectorized code
+    #for r in range(output_array_rows):
+    #    for c in range(output_array_cols):
+    #        output_array[r, c] = (filter * padded_image[r:r + rows_k, c:c + cols_k]).sum()
+
+    # vectorized code
+    # dividing padded_image into sub-matrices of the filter size
+    sub_matrices = view_as_windows(padded_image, (rows_k, cols_k))
+    output_array = np.einsum('ij,rcij->rc', filter, sub_matrices)
     
     return output_array
 
