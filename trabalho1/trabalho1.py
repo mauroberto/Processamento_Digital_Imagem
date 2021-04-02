@@ -2,26 +2,37 @@ import sys
 import pandas as pd
 import numpy as np
 import cv2
-from skimage.util.shape import view_as_windows
+import skimage
 
 #item A
 def filterA(img):
     b,g,r = cv2.split(img)
+    filter = np.array([
+                       [0.393, 0.769, 0.189],
+                       [0.349, 0.686, 0.168],
+                       [0.272, 0.534, 0.131]
+                    ])
 
-    _r = np.where(r*0.393 + g*0.769 + b*0.189 > 255, 255, r*0.393 + g*0.769 + b*0.189)
-    _g = np.where(r*0.349 + g*0.686 + b*0.168 > 255, 255, r*0.349 + g*0.686 + b*0.168)
-    _b = np.where(r*0.272 + g*0.534 + b*0.131 > 255, 255, r*0.272 + g*0.534 + b*0.131)
+    _r = (img.T * filter[0][:, None, None]).sum(axis=0).T
+    _g = (img.T * filter[1][:, None, None]).sum(axis=0).T
+    _b = (img.T * filter[2][:, None, None]).sum(axis=0).T
+
+    _r[_r > 255] = 255
+    _g[_g > 255] = 255
+    _b[_b > 255] = 255
 
     return cv2.merge((_b, _g, _r)).astype(np.uint8)
 
 
 #item B
 def filterB(img):
-    b,g,r = cv2.split(img)
+    filter = np.array([0.2989, 0.5870, 0.1140])
 
-    img2 = np.where(r*0.2989 + g*0.5870 + b*0.1140 > 255, 255, r*0.2989 + g*0.5870 + b*0.1140)
+    I = (img.T * filter[:, None, None]).sum(axis=0).T
 
-    return img2
+    I[I > 255] = 255
+
+    return I
 
 #defining filters
 h1 = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
@@ -58,14 +69,14 @@ def applyFilter(image, filter):
 
     output_array_rows, output_array_cols = output_array.shape[:2]
 
-    # non-vectorized code
+    # non-vectorized version
     #for r in range(output_array_rows):
     #    for c in range(output_array_cols):
     #        output_array[r, c] = (filter * padded_image[r:r + rows_k, c:c + cols_k]).sum()
 
-    # vectorized code
+    # vectorized version
     # dividing padded_image into sub-matrices of the filter size
-    sub_matrices = view_as_windows(padded_image, (rows_k, cols_k))
+    sub_matrices = skimage.util.shape.view_as_windows(padded_image, (rows_k, cols_k))
     output_array = np.einsum('ij,rcij->rc', filter, sub_matrices)
     
     return output_array
