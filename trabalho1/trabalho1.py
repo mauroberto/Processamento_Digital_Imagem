@@ -85,11 +85,10 @@ def applyFilter(image, filter):
 def combineFilters(img, filter1, filter2):
     img1 = applyFilter(img, filter1).astype(np.float32)
     img2 = applyFilter(img, filter2).astype(np.float32)
-    img1 = np.power(img1,2)
-    img2 = np.power(img2,2)
-    img3 = np.around(np.sqrt(img1 + img2))
-    img3 = cv2.normalize(img3, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
-    return img3
+    _img1 = np.power(img1,2)
+    _img2 = np.power(img2,2)
+    img3 = np.around(np.sqrt(_img1 + _img2))
+    return cv2.normalize(img3, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
 
 def main():
     #read args
