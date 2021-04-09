@@ -2,9 +2,9 @@ import sys
 import pandas as pd
 import numpy as np
 import cv2
-import skimage
+import skimage as si
 
-#item A
+# item A
 def filterA(img):
     b,g,r = cv2.split(img)
     filter = np.array([
@@ -24,7 +24,7 @@ def filterA(img):
     return cv2.merge((_b, _g, _r)).astype(np.uint8)
 
 
-#item B
+# item B
 def filterB(img):
     filter = np.array([0.2989, 0.5870, 0.1140])
 
@@ -34,7 +34,7 @@ def filterB(img):
 
     return I
 
-#defining filters
+# defining filters
 h1 = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
 h2 = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])
 h3 = np.array([[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]])
@@ -47,9 +47,9 @@ h9 = np.array([[1, 4, 6, 4, 1], [4, 16, 24, 16, 4], [6, 24, 36, 24, 6], [4, 16, 
 
 filters = np.array([h1, h2, h3, h4, h5, h6, h7, h8, h9], dtype=object)
 
-#apply convolution to image
+# apply convolution to image
 def applyFilter(image, filter):
-    #convert 3d grayscale images to 2d 
+    # convert 3d grayscale images to 2d 
     if len(image.shape) > 2:
         image = image[:,:,0]
     rows, cols = image.shape[:2]
@@ -58,8 +58,6 @@ def applyFilter(image, filter):
     pad_c = cols_k//2
     pad_r = rows_k//2
 
-    # creating output array
-    output_array = np.zeros((rows, cols))
     
     # adding padding to image
     padded_image = np.pad(image, [
@@ -67,21 +65,17 @@ def applyFilter(image, filter):
         (pad_c, pad_c)
     ])
 
-    output_array_rows, output_array_cols = output_array.shape[:2]
-
-    # non-vectorized version
-    #for r in range(output_array_rows):
-    #    for c in range(output_array_cols):
-    #        output_array[r, c] = (filter * padded_image[r:r + rows_k, c:c + cols_k]).sum()
-
     # vectorized version
-    # dividing padded_image into sub-matrices of the filter size
-    sub_matrices = skimage.util.shape.view_as_windows(padded_image, (rows_k, cols_k))
-    output_array = np.einsum('ij,rcij->rc', filter, sub_matrices)
-    
-    return output_array
+    # dividing padded_image into sub-matrices with filter size
+    sub_matrices = si.util.shape.view_as_windows(padded_image, (rows_k, cols_k))
+    output = np.einsum('ij,rcij->rc', filter, sub_matrices)
 
-#combine two filters
+    output[output < 0] = 0
+    output[output > 255] = 255
+
+    return output
+
+# combine two filters
 def combineFilters(img, filter1, filter2):
     img1 = applyFilter(img, filter1).astype(np.float32)
     img2 = applyFilter(img, filter2).astype(np.float32)
@@ -91,7 +85,7 @@ def combineFilters(img, filter1, filter2):
     return cv2.normalize(img3, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
 
 def main():
-    #read args
+    # read args
     if len(sys.argv) < 4:
         print("Usage: python3 trabalho1.py <image_path> <type_of_img> <filter_type> [output_filename]")
         print("<type_of_img> must be 0 if was passed a colored image and 1 otherwise")
@@ -110,10 +104,10 @@ def main():
     else:
         output_filename = "./output.png"
 
-    #read image
+    # read image
     img = cv2.imread(img_name)
 
-    #select filter
+    # select filter
     if type_of_img == 0:
         if flt_type < 0 or flt_type > 2:
             print("Invalid filter. The filter value must be an integer on interval [0, 2]")
@@ -144,7 +138,7 @@ def main():
         else:
             output_img = applyFilter(img, filters[flt_type-1])
 
-    #write output image
+    # write output image
     cv2.imwrite(output_filename, output_img)
 
 if __name__ == "__main__":
