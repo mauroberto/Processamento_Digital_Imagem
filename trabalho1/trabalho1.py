@@ -65,7 +65,6 @@ def applyFilter(image, filter):
         (pad_c, pad_c)
     ])
 
-    # vectorized version
     # dividing padded_image into sub-matrices with filter size
     sub_matrices = si.util.shape.view_as_windows(padded_image, (rows_k, cols_k))
     output = np.einsum('ij,rcij->rc', filter, sub_matrices)
