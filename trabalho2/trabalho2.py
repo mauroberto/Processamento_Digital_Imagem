@@ -14,8 +14,8 @@ def main():
 
     img_name = str(sys.argv[1])
 
-    if len(sys.argv) > 4:
-        output_filename = str(sys.argv[4])
+    if len(sys.argv) > 2:
+        output_filename = str(sys.argv[2])
     else:
         output_filename = "./output.png"
 
