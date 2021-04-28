@@ -1,16 +1,30 @@
 import sys
 import numpy as np
 import cv2
-import skimage as si
 import math
 import argparse
+from scipy.ndimage import rotate
 
+#aplicando transformada de fourier na imagem
 def fourier_transform(img):
     dft = cv2.dft(np.float32(img), flags = cv2.DFT_COMPLEX_OUTPUT)
     dft_shift = np.fft.fftshift(dft)
     magnitude_spectrum = 20*np.log(cv2.magnitude(dft_shift[:,:,0], dft_shift[:,:,1]))
 
     return dft, dft_shift, magnitude_spectrum
+
+
+#aplicando transformada reversa de fourier
+def frequency_to_espacial_domain(dft, shifted=True):
+    if shifted:
+        ifftshift = np.fft.ifftshift(dft)
+    else:
+        ifftshift = dft
+    espacial_img = cv2.idft(ifftshift)
+    espacial_img = cv2.magnitude(espacial_img[:,:,0], espacial_img[:,:,1])
+    espacial_img = cv2.normalize(espacial_img, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
+
+    return espacial_img
 
 #criação dos kernels
 def create_filters(img):
@@ -32,42 +46,36 @@ def create_filters(img):
 
     return passa_baixa, passa_faixa, passa_alta
 
-def apply_filter(img, filter, dft_shift, magnitude_spectrum):
+#aplica filtro à imagem em domínio de frequência
+def apply_filter(dft_shift, magnitude_spectrum, filter):
     filtered_spectrum = cv2.bitwise_and(magnitude_spectrum, magnitude_spectrum, mask=filter)
 
     filtered = cv2.bitwise_and(dft_shift, dft_shift, mask=filter)
-    ifftshift = np.fft.ifftshift(filtered)
-    filtered_img = cv2.idft(ifftshift)
-    filtered_img = cv2.magnitude(filtered_img[:,:,0], filtered_img[:,:,1])
-    filtered_img = cv2.normalize(filtered_img, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
+    filtered_img = frequency_to_espacial_domain(filtered)
 
     return filtered_spectrum, filtered_img
 
+#rotaciona imagem no domínio de frequência
 def rotate_img(img, angle):
-    rows, cols = img.shape[:2]
-    image_center = (rows//2, cols//2)
-
-    rotationMatrix = cv2.getRotationMatrix2D(image_center, angle, 1.0)
-    rotated_img = cv2.warpAffine(img, rotationMatrix, (rows, cols))
+    rotated_img = rotate(img, angle, reshape=True)
     return rotated_img
 
+#aplica compressão à imagem em domínio de frequência
 def compress_img(img, epsilon):
     dft = cv2.dft(np.float32(img), flags = cv2.DFT_COMPLEX_OUTPUT)
-    magnitude_spectrum = 10*np.log(cv2.magnitude(dft[:,:,0], dft[:,:,1]))
-    dft[abs(magnitude_spectrum) < epsilon] = 0
-    compressed_img = cv2.idft(dft)
-    compressed_img = cv2.magnitude(compressed_img[:,:,0], compressed_img[:,:,1])
-    compressed_img = cv2.normalize(compressed_img, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
-    return compressed_img
+    dft_shift = np.fft.fftshift(dft)
+    magnitude_spectrum = np.log(cv2.magnitude(dft_shift[:,:,0], dft_shift[:,:,1]))
+    dft_shift[abs(magnitude_spectrum) < epsilon] = 0
+    return frequency_to_espacial_domain(dft_shift)
 
 
 def main():
-    # read args
+    #read args
     parser = argparse.ArgumentParser()
     parser.add_argument('--img', '-i', help="Image Path", type=str)
     parser.add_argument('--out', '-o', help="Output filename is optional. If not passed, the default value is './output.png'", type=str, default='./output.png')
     parser.add_argument('--angle', '-a', help="Rotate_angle] is optional. The default value is 45", type=float, default=45.0)
-    parser.add_argument('--compress', '-c', help="Compress factor is optional. The default value is 105", type=float, default=105.0)
+    parser.add_argument('--compress', '-c', help="Compress factor is optional. The default value is 105", type=float, default=10.5)
 
     if len(sys.argv) < 2:
         print(parser.format_help())
@@ -84,7 +92,7 @@ def main():
         print(parser.format_help())
         exit()
 
-    # read image
+    #read image
     img = cv2.imread(img_name, 0)
 
     dft, dft_shift, magnitude_spectrum = fourier_transform(img)
@@ -94,15 +102,15 @@ def main():
     #aplicação dos filtros
     passa_baixa, passa_faixa, passa_alta = create_filters(img)
 
-    filtered_spectrum, filtered_img = apply_filter(img, passa_baixa, dft_shift, magnitude_spectrum)
+    filtered_spectrum, filtered_img = apply_filter(dft_shift, magnitude_spectrum, passa_baixa)
     cv2.imwrite(output_filename[:-4]+"_kernel_passa_baixa"+output_filename[-4:], filtered_spectrum)
     cv2.imwrite(output_filename[:-4]+"_passa_baixa"+output_filename[-4:], filtered_img)
 
-    filtered_spectrum, filtered_img = apply_filter(img, passa_faixa, dft_shift, magnitude_spectrum)
+    filtered_spectrum, filtered_img = apply_filter(dft_shift, magnitude_spectrum, passa_faixa)
     cv2.imwrite(output_filename[:-4]+"_kernel_passa_faixa"+output_filename[-4:], filtered_spectrum)
     cv2.imwrite(output_filename[:-4]+"_passa_faixa"+output_filename[-4:], filtered_img)
 
-    filtered_spectrum, filtered_img = apply_filter(img, passa_alta, dft_shift, magnitude_spectrum)
+    filtered_spectrum, filtered_img = apply_filter(dft_shift, magnitude_spectrum, passa_alta)
     cv2.imwrite(output_filename[:-4]+"_kernel_passa_alta"+output_filename[-4:], filtered_spectrum)
     cv2.imwrite(output_filename[:-4]+"_passa_alta"+output_filename[-4:], filtered_img)
 
