@@ -61,12 +61,10 @@ def rotate_img(img, angle):
     return rotated_img
 
 #aplica compressão à imagem em domínio de frequência
-def compress_img(img, epsilon):
-    dft = cv2.dft(np.float32(img), flags = cv2.DFT_COMPLEX_OUTPUT)
-    dft_shift = np.fft.fftshift(dft)
-    magnitude_spectrum = np.log(cv2.magnitude(dft_shift[:,:,0], dft_shift[:,:,1]))
-    dft_shift[abs(magnitude_spectrum) < epsilon] = 0
-    return frequency_to_espacial_domain(dft_shift)
+def compress_img(dft, epsilon):
+    magnitude_spectrum = np.log(cv2.magnitude(dft[:,:,0], dft[:,:,1]))
+    dft[abs(magnitude_spectrum) < epsilon] = 0
+    return frequency_to_espacial_domain(dft, shifted=False)
 
 
 def main():
@@ -115,7 +113,7 @@ def main():
     cv2.imwrite(output_filename[:-4]+"_passa_alta"+output_filename[-4:], filtered_img)
 
     #compressão
-    compressed_img = compress_img(img, compress_factor)
+    compressed_img = compress_img(dft, compress_factor)
     cv2.imwrite(output_filename[:-4]+"_compressao"+output_filename[-4:], compressed_img)
 
     #rotação
