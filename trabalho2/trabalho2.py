@@ -13,7 +13,6 @@ def fourier_transform(img):
 
     return dft, dft_shift, magnitude_spectrum
 
-
 #aplicando transformada reversa de fourier
 def frequency_to_espacial_domain(dft, shifted=True):
     if shifted:
@@ -65,7 +64,6 @@ def compress_img(dft, epsilon):
     magnitude_spectrum = np.log(cv2.magnitude(dft[:,:,0], dft[:,:,1]))
     dft[abs(magnitude_spectrum) < epsilon] = 0
     return frequency_to_espacial_domain(dft, shifted=False)
-
 
 def main():
     #read args
