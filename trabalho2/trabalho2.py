@@ -52,11 +52,6 @@ def apply_filter(fft_shift, magnitude_spectrum, filter):
 
     return filtered_spectrum, filtered_img
 
-#rotaciona imagem no domínio de frequência
-def rotate_img(img, angle):
-    rotated_img = rotate(img, angle, reshape=True)
-    return rotated_img
-
 #aplica compressão à imagem em domínio de frequência
 def compress_img(fft, epsilon):
     magnitude_spectrum = np.log(np.abs(fft))
@@ -111,8 +106,8 @@ def main():
     compressed_img = compress_img(fft, compress_factor)
     cv2.imwrite(output_filename[:-4]+"_compressao"+output_filename[-4:], compressed_img)
 
-    #rotação
-    rotated_img = rotate_img(img, rotate_angle)
+    #rotação no domínio espacial
+    rotated_img = rotated_img = rotate(img, rotate_angle, reshape=True)
     cv2.imwrite(output_filename[:-4]+"_rotacao"+output_filename[-4:], rotated_img)
 
     #espectro rotação
