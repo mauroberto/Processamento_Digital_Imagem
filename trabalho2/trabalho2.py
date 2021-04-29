@@ -30,16 +30,16 @@ def create_filters(img):
 
     #kernel passa-baixa
     passa_baixa = np.zeros((rows, cols), np.uint8)
-    cv2.circle(passa_baixa, image_center, 80, 1, cv2.FILLED)
+    cv2.circle(passa_baixa, image_center, 60, 1, cv2.FILLED)
 
     #kernel passa-faixa
     passa_faixa = np.zeros((rows, cols), np.uint8)
-    cv2.circle(passa_faixa, image_center, 100, 1, cv2.FILLED)
+    cv2.circle(passa_faixa, image_center, 80, 1, cv2.FILLED)
     cv2.circle(passa_faixa, image_center, 20, 0, cv2.FILLED)
 
     #kernel passa-alta
     passa_alta = np.ones((rows, cols), np.uint8)
-    cv2.circle(passa_alta, image_center, 60, 0, cv2.FILLED) 
+    cv2.circle(passa_alta, image_center, 75, 0, cv2.FILLED) 
 
     return passa_baixa, passa_faixa, passa_alta
 
