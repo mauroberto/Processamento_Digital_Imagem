@@ -55,7 +55,7 @@ def apply_filter(fft_shift, magnitude_spectrum, filter):
 #aplica compressão à imagem em domínio de frequência
 def compress_img(fft, epsilon):
     magnitude_spectrum = np.log(np.abs(fft))
-    fft[abs(magnitude_spectrum) < epsilon] = 0
+    fft[magnitude_spectrum < epsilon] = 0
     return frequency_to_espacial_domain(fft, shifted=False)
 
 def main():
