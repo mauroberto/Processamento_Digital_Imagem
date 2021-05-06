@@ -26,7 +26,7 @@ def frequency_to_espacial_domain(fft, shifted=True):
 #criação dos kernels
 def create_filters(img):
     rows, cols = img.shape[:2]
-    image_center = (rows//2, cols//2)
+    image_center = (math.ceil(rows/2), math.ceil(cols/2))
 
     #kernel passa-baixa
     passa_baixa = np.zeros((rows, cols), np.uint8)
