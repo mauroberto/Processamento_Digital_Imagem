@@ -13,7 +13,7 @@ def fourier_transform(img):
 
     return fft, fft_shift, magnitude_spectrum
 
-#aplicando transformada reversa de fourier
+#aplicando transformada inversa de fourier
 def frequency_to_espacial_domain(fft, shifted=True):
     if shifted:
         ifftshift = np.fft.ifftshift(fft)
@@ -86,6 +86,8 @@ def main():
 
     fft, fft_shift, magnitude_spectrum = fourier_transform(img)
     cv2.imwrite(output_filename[:-4]+"_espectro_magnitude"+output_filename[-4:], magnitude_spectrum)
+    inversa = frequency_to_espacial_domain(fft)
+    cv2.imwrite(output_filename[:-4]+"_transformada_inversa"+output_filename[-4:], inversa)
 
     #aplicação dos filtros
     passa_baixa, passa_faixa, passa_alta = create_filters(img)
