@@ -9,9 +9,9 @@ from scipy.ndimage import rotate
 def fourier_transform(img):
     fft = np.fft.fft2(img)
     fft_shift = np.fft.fftshift(fft)
-    magnitude_spectrum = 20*np.log(np.abs(fft_shift))
+    magnitude = 20*np.log(np.abs(fft_shift))
 
-    return fft, fft_shift, magnitude_spectrum
+    return fft, fft_shift, magnitude
 
 #aplicando transformada inversa de fourier
 def frequency_to_espacial_domain(fft, shifted=True):
@@ -44,8 +44,8 @@ def create_filters(img):
     return passa_baixa, passa_faixa, passa_alta
 
 #aplica filtro à imagem em domínio de frequência
-def apply_filter(fft_shift, magnitude_spectrum, filter):
-    filtered_spectrum = magnitude_spectrum * filter
+def apply_filter(fft_shift, magnitude, filter):
+    filtered_spectrum = magnitude * filter
 
     filtered = fft_shift * filter
     filtered_img = frequency_to_espacial_domain(filtered)
@@ -54,8 +54,8 @@ def apply_filter(fft_shift, magnitude_spectrum, filter):
 
 #aplica compressão à imagem em domínio de frequência
 def compress_img(fft, epsilon):
-    magnitude_spectrum = np.log(np.abs(fft))
-    fft[magnitude_spectrum < epsilon] = 0
+    magnitude = np.log(np.abs(fft))
+    fft[magnitude < epsilon] = 0
     return frequency_to_espacial_domain(fft, shifted=False)
 
 def main():
@@ -84,23 +84,23 @@ def main():
     #read image
     img = cv2.imread(img_name, 0)
 
-    fft, fft_shift, magnitude_spectrum = fourier_transform(img)
-    cv2.imwrite(output_filename[:-4]+"_espectro_magnitude"+output_filename[-4:], magnitude_spectrum)
+    fft, fft_shift, magnitude = fourier_transform(img)
+    cv2.imwrite(output_filename[:-4]+"_espectro_magnitude"+output_filename[-4:], magnitude)
     inversa = frequency_to_espacial_domain(fft)
     cv2.imwrite(output_filename[:-4]+"_transformada_inversa"+output_filename[-4:], inversa)
 
     #aplicação dos filtros
     passa_baixa, passa_faixa, passa_alta = create_filters(img)
 
-    filtered_spectrum, filtered_img = apply_filter(fft_shift, magnitude_spectrum, passa_baixa)
+    filtered_spectrum, filtered_img = apply_filter(fft_shift, magnitude, passa_baixa)
     cv2.imwrite(output_filename[:-4]+"_kernel_passa_baixa"+output_filename[-4:], filtered_spectrum)
     cv2.imwrite(output_filename[:-4]+"_passa_baixa"+output_filename[-4:], filtered_img)
 
-    filtered_spectrum, filtered_img = apply_filter(fft_shift, magnitude_spectrum, passa_faixa)
+    filtered_spectrum, filtered_img = apply_filter(fft_shift, magnitude, passa_faixa)
     cv2.imwrite(output_filename[:-4]+"_kernel_passa_faixa"+output_filename[-4:], filtered_spectrum)
     cv2.imwrite(output_filename[:-4]+"_passa_faixa"+output_filename[-4:], filtered_img)
 
-    filtered_spectrum, filtered_img = apply_filter(fft_shift, magnitude_spectrum, passa_alta)
+    filtered_spectrum, filtered_img = apply_filter(fft_shift, magnitude, passa_alta)
     cv2.imwrite(output_filename[:-4]+"_kernel_passa_alta"+output_filename[-4:], filtered_spectrum)
     cv2.imwrite(output_filename[:-4]+"_passa_alta"+output_filename[-4:], filtered_img)
 
@@ -113,8 +113,8 @@ def main():
     cv2.imwrite(output_filename[:-4]+"_rotacao"+output_filename[-4:], rotated_img)
 
     #espectro rotação
-    fft, fft_shift, magnitude_spectrum = fourier_transform(rotated_img)
-    cv2.imwrite(output_filename[:-4]+"_espectro_magnitude_rotacao"+output_filename[-4:], magnitude_spectrum)
+    fft, fft_shift, magnitude = fourier_transform(rotated_img)
+    cv2.imwrite(output_filename[:-4]+"_espectro_magnitude_rotacao"+output_filename[-4:], magnitude)
 
 if __name__ == "__main__":
     main()
