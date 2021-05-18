@@ -1,11 +1,8 @@
 import sys
 import numpy as np
 import cv2
-import math
 import argparse
-from scipy.ndimage import rotate
 import random as rand
-
 import matplotlib.pyplot as plt
 
 rand.seed(192800)
