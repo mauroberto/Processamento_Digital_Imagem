@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 rand.seed(192800)
 
 def histogram(areas, output_filename):
-    n, bins, patches = plt.hist(areas, bins=[min(areas), 1500, 3000, max(max(areas), 4000)], edgecolor='black', linewidth=1)
+    n, bins, patches = plt.hist(areas, bins=[min(min(areas), 0), 1500, 3000, max(max(areas), 4000)], edgecolor='black', linewidth=1)
     plt.xlabel("Área")
     plt.ylabel("Número de Objetos")
     plt.savefig(output_filename[:-4]+"_histograma"+output_filename[-4:])
@@ -72,7 +72,7 @@ def drawContoursFilled(contours, edged):
         color = (rand.randint(0, 255), rand.randint(0, 255), rand.randint(0, 255))
         cv2.fillPoly(drawing, pts = [cnt], color=color)
         (cX, cY) = getCentroid(cnt)
-        cv2.putText(drawing, str(i), (cX, cY), cv2.FONT_HERSHEY_PLAIN, 1, 2)
+        #cv2.putText(drawing, str(i), (cX, cY), cv2.FONT_HERSHEY_PLAIN, 1, 2)
 
     return drawing
 
@@ -128,7 +128,7 @@ def main():
     img = cv2.imread(img_name, cv2.IMREAD_GRAYSCALE)
 
     #convertendo imagem para preto e branco
-    (thresh, im_bw) = cv2.threshold(img, 250, 255, cv2.THRESH_BINARY)
+    im_bw = cv2.threshold(img, 230, 255, cv2.THRESH_BINARY)[1]
     cv2.imwrite(output_filename[:-4]+"_binaria"+output_filename[-4:], im_bw)
 
     edged = cv2.Canny(im_bw, 100, 200)
