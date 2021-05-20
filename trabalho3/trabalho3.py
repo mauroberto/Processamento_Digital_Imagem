@@ -117,9 +117,11 @@ def main():
     im_bw = cv2.threshold(img, 230, 255, cv2.THRESH_BINARY)[1]
     cv2.imwrite(output_filename[:-4]+"_binaria"+output_filename[-4:], im_bw)
 
+    #criação do mapa de bordas
     laplacian = cv2.Laplacian(im_bw, cv2.CV_8U, ksize=3)
     cv2.imwrite(output_filename[:-4]+"_mapa_de_bordas"+output_filename[-4:], laplacian)
 
+    #detecção de contornos
     _, contours, hierarchy = cv2.findContours(laplacian, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     
     #1.2 - desenhando contornos
