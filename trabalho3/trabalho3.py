@@ -59,9 +59,8 @@ def getEccentricity(cnt):
 
 def drawContours(contours, edged, hierarchy):
     drawing = np.full((edged.shape[0], edged.shape[1], 3), 255, dtype=np.uint8)
-    for i in range(0, len(contours)):
-        color = (0, 0, 255)
-        cv2.drawContours(drawing, contours, i, color, 1, cv2.LINE_8, hierarchy, 0)
+    color = (0, 0, 255)
+    cv2.drawContours(drawing, contours, -1, color, 1)
 
     return drawing
 
@@ -72,7 +71,7 @@ def drawContoursFilled(contours, edged):
         color = (rand.randint(0, 255), rand.randint(0, 255), rand.randint(0, 255))
         cv2.fillPoly(drawing, pts = [cnt], color=color)
         (cX, cY) = getCentroid(cnt)
-        #cv2.putText(drawing, str(i), (cX, cY), cv2.FONT_HERSHEY_PLAIN, 1, 2)
+        cv2.putText(drawing, str(i), (cX - 6, cY + 6), cv2.FONT_HERSHEY_PLAIN, 1, 2)
 
     return drawing
 
@@ -131,21 +130,19 @@ def main():
     im_bw = cv2.threshold(img, 230, 255, cv2.THRESH_BINARY)[1]
     cv2.imwrite(output_filename[:-4]+"_binaria"+output_filename[-4:], im_bw)
 
-    edged = cv2.Canny(im_bw, 100, 200)
-    _, contours, hierarchy = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    laplacian_im_bw = cv2.Laplacian(im_bw, cv2.CV_8U, ksize=3)
 
-    #filtrando os contornos por hierarquia (cv2.RETR_TREE)
-    #contours = filterContoursByHierarchy(contours, hierarchy)
+    _, contours, hierarchy = cv2.findContours(laplacian_im_bw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
     #1.2 - desenhando contornos
-    drawing = drawContours(contours, edged, hierarchy)
+    drawing = drawContours(contours, im_bw, hierarchy)
     cv2.imwrite(output_filename[:-4]+"_contornos"+output_filename[-4:], drawing)
 
     #1.3 - extraindo e imprimindo as propriedades dos contornos
     areas = extractProperties(contours)
 
     #1.3 - desenhando contornos preenchidos e com rótulos
-    drawing2 = drawContoursFilled(contours, edged)
+    drawing2 = drawContoursFilled(contours, im_bw)
     cv2.imwrite(output_filename[:-4]+"_contornos_preenchidos"+output_filename[-4:], drawing2)
 
     #1.4 - histograma de área dos objetos
