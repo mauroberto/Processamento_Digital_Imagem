@@ -5,7 +5,7 @@ import argparse
 import random as rand
 import matplotlib.pyplot as plt
 
-#seed para a gerar cores aleatórias
+#seed para gerar cores aleatórias
 rand.seed(192800)
 
 def histogram(areas, output_filename):
