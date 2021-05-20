@@ -43,17 +43,14 @@ def getSolidity(cnt, area):
     return area/float(convex_area)
 
 def getEccentricity(cnt):
-    if cnt.shape[0] < 5:
-        return 0.0 
-
-    ellipse = cv2.fitEllipse(cnt)
+    _ellipse = cv2.fitEllipse(cnt)
 
     #centro, tamanho dos eixos e orientação da elipse
-    (center, axis, orientation) = ellipse
+    (center, axis, orientation) = _ellipse
 
-    #comprimento do maior e menor eixo
-    max_axle = max(axis)
-    min_axle = min(axis)
+    #comprimento do semieixo maior e semieixo menor
+    max_axle = max(axis)/2
+    min_axle = min(axis)/2
 
     return np.sqrt(1-(min_axle/max_axle)**2)
 
@@ -94,16 +91,6 @@ def extractProperties(contours):
 
     return areas
 
-def filterContoursByHierarchy(contours, hierarchy):
-    cntours = []
-
-    for i in range(0, len(contours)):
-        if hierarchy[0][i][3] == -1:
-            continue
-        cntours.append(contours[i])
-
-    return cntours
-
 def main():
     #lendo argumentos
     parser = argparse.ArgumentParser()
@@ -130,9 +117,10 @@ def main():
     im_bw = cv2.threshold(img, 230, 255, cv2.THRESH_BINARY)[1]
     cv2.imwrite(output_filename[:-4]+"_binaria"+output_filename[-4:], im_bw)
 
-    laplacian_im_bw = cv2.Laplacian(im_bw, cv2.CV_8U, ksize=3)
+    laplacian = cv2.Laplacian(im_bw, cv2.CV_8U, ksize=3)
+    cv2.imwrite(output_filename[:-4]+"_mapa_de_bordas"+output_filename[-4:], laplacian)
 
-    _, contours, hierarchy = cv2.findContours(laplacian_im_bw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    _, contours, hierarchy = cv2.findContours(laplacian, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     
     #1.2 - desenhando contornos
     drawing = drawContours(contours, im_bw, hierarchy)
