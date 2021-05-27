@@ -18,7 +18,6 @@ def histogram(areas, output_filename):
     print("número de regiões médias: %d" % n[1])
     print("número de regiões grandes: %d" % n[2])
 
-
 def getCentroid(cnt):
     M = cv2.moments(cnt)
     if M['m00'] != 0:
@@ -32,7 +31,6 @@ def getCentroid(cnt):
 def getSolidity(cnt, area):
     #fecho convexo
     convex_hull = cv2.convexHull(cnt)
-
     #area do fecho convexo
     convex_area = cv2.contourArea(convex_hull)
 
@@ -43,14 +41,11 @@ def getSolidity(cnt, area):
     return area/float(convex_area)
 
 def getEccentricity(cnt):
-    _ellipse = cv2.fitEllipse(cnt)
-
-    #centro, tamanho dos eixos e orientação da elipse
-    (center, axis, orientation) = _ellipse
-
-    #comprimento do semieixo maior e semieixo menor
-    max_axle = max(axis)/2
-    min_axle = min(axis)/2
+    #eixos da elipse criada a partir do contorno
+    axis = cv2.fitEllipse(cnt)[1]
+    #comprimentos do maior e menor eixo
+    max_axle = max(axis)    
+    min_axle = min(axis)
 
     return np.sqrt(1-(min_axle/max_axle)**2)
 
@@ -61,14 +56,15 @@ def drawContours(contours, edged, hierarchy):
 
     return drawing
 
-def drawContoursFilled(contours, edged):
+def drawFilledContours(contours, edged):
     drawing = np.full((edged.shape[0], edged.shape[1], 3), 255, dtype=np.uint8)
     for i in range(0, len(contours)):
         cnt = contours[i]
         color = (rand.randint(0, 255), rand.randint(0, 255), rand.randint(0, 255))
         cv2.fillPoly(drawing, pts = [cnt], color=color)
         (cX, cY) = getCentroid(cnt)
-        cv2.putText(drawing, str(i), (cX - 6, cY + 6), cv2.FONT_HERSHEY_PLAIN, 1, 2)
+        txt = str(i)
+        cv2.putText(drawing, txt, (cX - (len(txt)*5), cY + 5), cv2.FONT_HERSHEY_PLAIN, 1, 2)
 
     return drawing
 
@@ -132,7 +128,7 @@ def main():
     areas = extractProperties(contours)
 
     #1.3 - desenhando contornos preenchidos e com rótulos
-    drawing2 = drawContoursFilled(contours, im_bw)
+    drawing2 = drawFilledContours(contours, im_bw)
     cv2.imwrite(output_filename[:-4]+"_contornos_preenchidos"+output_filename[-4:], drawing2)
 
     #1.4 - histograma de área dos objetos
