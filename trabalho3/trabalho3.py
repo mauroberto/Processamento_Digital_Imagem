@@ -41,13 +41,19 @@ def getSolidity(cnt, area):
     return area/float(convex_area)
 
 def getEccentricity(cnt):
-    #eixos da elipse criada a partir do contorno
-    axis = cv2.fitEllipse(cnt)[1]
-    #comprimentos do maior e menor eixo
-    max_axle = max(axis)    
-    min_axle = min(axis)
+    M = cv2.moments(cnt, True)
+    cx = M['m10'] / M['m00']
+    cy = M['m01'] / M['m00']
 
-    return np.sqrt(1-(min_axle/max_axle)**2)
+    u20 = ((M['m20'] / M['m00']) - cx**2)
+    u02 = ((M['m02'] / M['m00']) - cy**2)
+    u11 = ((M['m11'] / M['m00']) - (cx * cy))
+
+    #calculando o maior e menor eixo
+    eigenValue1 = ((u20 + u02) + np.sqrt(4 * (u11**2) + (u20 - u02)**2))/2
+    eigenValue2 = ((u20 + u02) - np.sqrt(4 * (u11**2) + (u20 - u02)**2))/2
+
+    return np.sqrt(1 - eigenValue2/eigenValue1)
 
 def drawContours(contours, edged, hierarchy):
     drawing = np.full((edged.shape[0], edged.shape[1], 3), 255, dtype=np.uint8)
