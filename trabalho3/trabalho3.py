@@ -19,7 +19,7 @@ def histogram(areas, output_filename):
     print("número de regiões grandes: %d" % n[2])
 
 def getCentroid(cnt):
-    M = cv2.moments(cnt)
+    M = cv2.moments(cnt, True)
     if M['m00'] != 0:
         cx = int(M['m10']/M['m00'])
         cy = int(M['m01']/M['m00'])
