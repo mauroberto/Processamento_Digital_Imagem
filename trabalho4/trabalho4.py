@@ -59,15 +59,16 @@ def main():
     OPENCV_METHODS = (
         ("Correlação", cv2.HISTCMP_CORREL),
         ("Chi-Quadrado", cv2.HISTCMP_CHISQR),
+        ("Intersecção", cv2.HISTCMP_INTERSECT),
         ("Bhattacharyya", cv2.HISTCMP_BHATTACHARYYA)
     )
+
 
     for (name, compare_method) in OPENCV_METHODS:
         value = cv2.compareHist(np.float32(n), np.float32(n2), compare_method)
         print(name, ":", value)
     
 
-    print("#####")
 
     #GLCM
 
