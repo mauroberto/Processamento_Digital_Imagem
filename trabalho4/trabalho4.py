@@ -17,7 +17,7 @@ def getNameFromPath(path):
     return path
 
 def plotImages(img1, img2, name, title1, title2):
-    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(9, 6))
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(9, 4))
     plt.gray()
     fig.tight_layout()
     ax1.imshow(img1)
