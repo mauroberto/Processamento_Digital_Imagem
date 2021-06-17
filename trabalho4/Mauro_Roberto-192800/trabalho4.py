@@ -33,6 +33,23 @@ def plotImages(img1, img2, name, title1, title2):
     plt.clf()
     plt.close() 
 
+def glcm(img, label="imagem 1"):
+    distances = [5]
+    angles = [0, np.pi/4, np.pi/2, 3*np.pi/4]
+    
+    _glcm = texture.greycomatrix(img, distances, angles, 256)
+    contrast = texture.greycoprops(_glcm, 'contrast')
+    ASM = texture.greycoprops(_glcm, 'ASM')
+
+    for distance_idx in range(0, len(distances)):
+        print("Distância: %f" % distances[distance_idx])
+
+        for angle_idx in range(0, len(angles)):
+            print("Ângulo: %f" % angles[angle_idx])
+            print("Contraste %s: %.4f" % (label, contrast[distance_idx, angle_idx]))
+            print("Segundo momento angular %s: %f" % (label, ASM[distance_idx, angle_idx]))
+            print("Entropia %s: %.4f" % (label, shannon_entropy(_glcm[:, :, distance_idx, angle_idx])))
+
 def main():
     #lendo argumentos
     parser = argparse.ArgumentParser()
@@ -63,7 +80,7 @@ def main():
 
     # LBP
     radius = 1
-    n_points = 8 * radius
+    n_points = 8
     lbp_img = local_binary_pattern(img, n_points, radius)
     lbp_img2 = local_binary_pattern(img2, n_points, radius)
     plotImages(lbp_img, lbp_img2, output_filename[:-4]+"_LBP"+output_filename[-4:], img_name, img2_name)
@@ -93,16 +110,8 @@ def main():
     
 
     # GLCM
-    glcm = texture.greycomatrix(img, [5], [0], 256)
-    print("Contraste imagem 1: %.4f" % texture.greycoprops(glcm, 'contrast'))
-    print("Segundo momento angular imagem 1: %f" % texture.greycoprops(glcm, 'ASM'))
-    print("Entropia imagem 1: %.4f" % shannon_entropy(glcm[:, :, 0, 0]))
-
-    glcm2 = texture.greycomatrix(img2, [5], [0], 256)
-    print("Contraste imagem 2: %.4f" % texture.greycoprops(glcm2, 'contrast'))
-    print("Segundo momento angular imagem 2: %f" % texture.greycoprops(glcm2, 'ASM'))
-    print("Entropia imagem 2: %.4f" % shannon_entropy(glcm2[:, :, 0, 0]))
-
+    glcm(img)
+    glcm(img2, "imagem 2")
 
 if __name__ == "__main__":
     main()
