@@ -36,6 +36,7 @@ def plotImages(img1, img2, name, title1, title2):
 def glcm(img, label="imagem 1"):
     distances = [5]
     angles = [0, np.pi/4, np.pi/2, 3*np.pi/4]
+    label_angles = ["0", "45", "90", "135"]
     
     _glcm = texture.greycomatrix(img, distances, angles, 256)
     contrast = texture.greycoprops(_glcm, 'contrast')
@@ -45,7 +46,7 @@ def glcm(img, label="imagem 1"):
         print("Distância: %f" % distances[distance_idx])
 
         for angle_idx in range(0, len(angles)):
-            print("Ângulo: %f" % angles[angle_idx])
+            print("Ângulo: %s" % label_angles[angle_idx])
             print("Contraste %s: %.4f" % (label, contrast[distance_idx, angle_idx]))
             print("Segundo momento angular %s: %f" % (label, ASM[distance_idx, angle_idx]))
             print("Entropia %s: %.4f" % (label, shannon_entropy(_glcm[:, :, distance_idx, angle_idx])))
@@ -99,7 +100,7 @@ def main():
     # métodos de comparação do OpenCV
     CV2_METHODS = (
         ("Correlação", cv2.HISTCMP_CORREL),
-        ("Chi-Quadrado", cv2.HISTCMP_CHISQR),
+        ("Qui-Quadrado", cv2.HISTCMP_CHISQR),
         ("Interseção", cv2.HISTCMP_INTERSECT),
         ("Bhattacharyya", cv2.HISTCMP_BHATTACHARYYA)
     )
